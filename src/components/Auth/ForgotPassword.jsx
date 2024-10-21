@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
  // Assuming useAuth provides the necessary logic for password reset
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../../Hooks/UseAuth';
+import useAuth from '../../hooks/useAuth';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

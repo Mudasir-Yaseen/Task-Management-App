@@ -1,26 +1,17 @@
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
+// src/routes/ProtectedRoute.jsx
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 
-const ProtectedRoute = ({ role }) => {
-  const { user } = useAuth();
+const ProtectedRoute = ({ children }) => {
+    const { user } = useAuth(); // Assuming user is defined in your auth context
 
-  // Check if user is authenticated and has the correct role
-  const isAuthenticated = user !== null;
-  const hasAccess = isAuthenticated && user.role === role;
+    if (!user) {
+        // If no user is authenticated, redirect to login
+        return <Navigate to="/" replace />;
+    }
 
-  // If the user is not authenticated, redirect to login
-  if (!isAuthenticated) {
-    return <Navigate to="/" />;
-  }
-
-  // If the user doesn't have the right role, redirect to error page or a forbidden page
-  if (!hasAccess) {
-    return <Navigate to="/error" />; // Adjust this to your error page route
-  }
-
-  // If authenticated and has access, render the child components
-  return <Outlet />;
+    return children; // If authenticated, render the child components
 };
 
 export default ProtectedRoute;

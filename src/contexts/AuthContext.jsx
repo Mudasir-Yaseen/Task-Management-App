@@ -8,8 +8,11 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
-    const login = (userData) => {
-        setUser(userData);
+    const login = (email, password) => {
+        // Mock login function; replace with actual API call
+        const mockUser = { email }; // Mock user data
+        setUser(mockUser);
+        return Promise.resolve(mockUser); // Simulating successful login
     };
 
     const logout = () => {
