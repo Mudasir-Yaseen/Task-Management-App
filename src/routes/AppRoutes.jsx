@@ -9,6 +9,7 @@ import Login from '../Components/Auth/Login';
 import SignUp from '../Components/Auth/Signup';
 import ProtectedRoute from '../routes/ProtectedRoute';
 import AdminDashboard from '../pages/AdminDashboard';
+
 // Make sure to import the SignUp component
 
 const AppRoutes = () => {
@@ -17,6 +18,8 @@ const AppRoutes = () => {
             <Route path="/login" element={<Login />} /> {/* Login Page */}
             <Route path="/signup" element={<SignUp />} /> {/* Sign Up Page */}
             <Route path="/admin" element={<AdminDashboard />} /> {/* Sign Up Page */}
+            <Route path="/profile" element={<Profile />} /> {/* Sign Up Page */}
+            
 
             <Route
                 path="/dashboard"
@@ -36,14 +39,14 @@ const AppRoutes = () => {
                 }
             /> Admin Dashboard */}
             
-            <Route
+            {/* <Route
                 path="/profile"
                 element={
                     <ProtectedRoute>
                         <Profile />
                     </ProtectedRoute>
                 }
-            /> {/* Profile Page */}
+            /> Profile Page */}
             
             <Route path="/notifications" element={<Notifications />} /> {/* Notifications Page */}
             

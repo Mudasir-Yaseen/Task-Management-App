@@ -55,15 +55,15 @@ const Sidebar = () => {
           )}
           <li className="mb-2">
             <NavLink
-              to="/notifications"
+              to="/projects" // Updated route for Projects
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg transition duration-200 ease-in-out ${
                   isActive ? 'bg-teal-600 text-white' : 'text-gray-300 hover:bg-teal-500 hover:text-white'
                 }`
               }
             >
-              <span className="material-icons">notifications</span>
-              <span className="ml-3">Notifications</span>
+              <span className="material-icons">folder</span> {/* You can change the icon as needed */}
+              <span className="ml-3">Projects</span>
             </NavLink>
           </li>
           {/* Removed the Logout link */}
