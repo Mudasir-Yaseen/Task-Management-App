@@ -1,64 +1,21 @@
-// src/services/api.js
+import axios from 'axios';
 
-const BASE_URL = "https://your-backend-api.com/api"; // Replace with your actual API URL
+const api = axios.create({
+  baseURL: 'https://api.example.com', // Replace with your API base URL
+  headers: {
+    'Content-Type': 'application/json',
+    // Add other headers if needed
+  },
+});
 
-// Helper function to handle API requests
-const apiRequest = async (endpoint, method = "GET", data = null, token = null) => {
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  // Add the token to headers if it exists
-  if (token) {
-    options.headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  // Include request body for POST, PUT, or PATCH requests
-  if (data) {
-    options.body = JSON.stringify(data);
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, options);
-    const responseData = await response.json();
-
-    if (!response.ok) {
-      throw new Error(responseData.message || "Something went wrong with the API request");
-    }
-
-    return responseData;
-  } catch (error) {
-    console.error(`API request error: ${error.message}`);
-    throw error;
-  }
+export const getTasks = async () => {
+  const response = await api.get('/tasks');
+  return response.data;
 };
 
-// Function to fetch data (GET request)
-export const fetchData = (endpoint, token = null) => {
-  return apiRequest(endpoint, "GET", null, token);
+export const createTask = async (task) => {
+  const response = await api.post('/tasks', task);
+  return response.data;
 };
 
-// Function to create new data (POST request)
-export const createData = (endpoint, data, token = null) => {
-  return apiRequest(endpoint, "POST", data, token);
-};
-
-// Function to update existing data (PUT request)
-export const updateData = (endpoint, data, token = null) => {
-  return apiRequest(endpoint, "PUT", data, token);
-};
-
-// Function to delete data (DELETE request)
-export const deleteData = (endpoint, token = null) => {
-  return apiRequest(endpoint, "DELETE", null, token);
-};
-
-export default {
-  fetchData,
-  createData,
-  updateData,
-  deleteData,
-};
+// Add other API methods as needed

@@ -2,41 +2,43 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTachometerAlt, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import useAuth from '../hooks/useAuth';
 
-const Navbar = ({ user }) => {
+const Navbar = () => {
+  const { user } = useAuth(); // Assuming you are using a hook to get user info
+
   const handleLogout = () => {
     // Implement your logout logic here
     console.log("User logged out");
   };
 
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md">
+    <nav className="bg-gray-900 text-white shadow-md">
       <div className="container mx-auto flex justify-between items-center p-4">
-        <div className="text-2xl font-bold">
-          Task Management App
-        </div>
+        {/* Empty space on the left */}
+        <div className="flex-grow"></div>
         <div className="flex items-center space-x-8">
           <Link 
-            to="/dashboard" 
-            className="flex items-center space-x-2 hover:text-blue-200 transition-colors duration-300 ease-in-out"
+            to="/" 
+            className="flex items-center p-4 rounded-lg transition duration-200 ease-in-out hover:bg-teal-500 hover:text-white"
           >
             <FontAwesomeIcon icon={faTachometerAlt} />
-            <span>Dashboard</span>
+            <span className="ml-2">Dashboard</span>
           </Link>
           <Link 
             to="/profile" 
-            className="flex items-center space-x-2 hover:text-blue-200 transition-colors duration-300 ease-in-out"
+            className="flex items-center p-4 rounded-lg transition duration-200 ease-in-out hover:bg-teal-500 hover:text-white"
           >
             <FontAwesomeIcon icon={faUser} />
-            <span>Profile</span>
+            <span className="ml-2">Profile</span>
           </Link>
           {user && (
             <button 
               onClick={handleLogout} 
-              className="flex items-center space-x-2 hover:text-blue-200 transition-colors duration-300 ease-in-out"
+              className="flex items-center p-4 rounded-lg transition duration-200 ease-in-out hover:bg-teal-500 hover:text-white"
             >
               <FontAwesomeIcon icon={faSignOutAlt} />
-              <span>Logout</span>
+              <span className="ml-2">Logout</span>
             </button>
           )}
         </div>

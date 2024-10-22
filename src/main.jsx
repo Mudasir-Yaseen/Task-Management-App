@@ -1,12 +1,11 @@
 // src/main.jsx
-import './styles/tailwind.css'; // Ensure the path is correct
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './App'; // Ensure this matches your file structure
+import './index.css'; // If you have global styles
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
