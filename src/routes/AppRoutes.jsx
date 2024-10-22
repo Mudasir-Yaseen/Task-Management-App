@@ -6,9 +6,10 @@ import UserDashboard from '../pages/UserDashboard';
 import Profile from '../pages/Profile';
 import Notifications from '../components/Notifications';
 import ErrorPage from '../pages/ErrorPage';
-import ProtectedRoute from './ProtectedRoute';
-import Login from '../components/Auth/Login'; // Ensure the path is correct
-import SignUp from '../components/Auth/SignUp'; // Make sure to import the SignUp component
+import Login from '../Components/Auth/Login';
+import SignUp from '../Components/Auth/Signup';
+import ProtectedRoute from '../routes/ProtectedRoute';
+// Make sure to import the SignUp component
 
 const AppRoutes = () => {
     return (
