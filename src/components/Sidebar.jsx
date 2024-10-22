@@ -14,7 +14,7 @@ const Sidebar = () => {
         <ul>
           <li className="mb-2">
             <NavLink
-              to="/"
+              to="/dashboard"
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg transition duration-200 ease-in-out ${
                   isActive ? 'bg-teal-600 text-white' : 'text-gray-300 hover:bg-teal-500 hover:text-white'

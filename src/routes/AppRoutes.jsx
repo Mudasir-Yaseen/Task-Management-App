@@ -1,58 +1,38 @@
 // src/routes/AppRoutes.jsx
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import UserDashboard from '../pages/UserDashboard';
-import Profile from '../pages/Profile';
-import Notifications from '../components/Notifications';
-import ErrorPage from '../pages/ErrorPage';
-import Login from '../Components/Auth/Login';
-import SignUp from '../Components/Auth/Signup';
-import ProtectedRoute from '../routes/ProtectedRoute';
-import AdminDashboard from '../pages/AdminDashboard';
-
-// Make sure to import the SignUp component
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import UserDashboard from "../pages/UserDashboard";
+import Profile from "../pages/Profile";
+import Notifications from "../components/Notifications";
+import ErrorPage from "../pages/ErrorPage";
+import Login from "../Components/Auth/Login";
+import SignUp from "../Components/Auth/Signup";
+import AdminDashboard from "../pages/AdminDashboard";
+import Projects from "../pages/Projects";
+import MainLayout from "../components/MainLayout";
 
 const AppRoutes = () => {
-    return (
-        <Routes>
-            <Route path="/login" element={<Login />} /> {/* Login Page */}
-            <Route path="/signup" element={<SignUp />} /> {/* Sign Up Page */}
-            <Route path="/admin" element={<AdminDashboard />} /> {/* Sign Up Page */}
-            <Route path="/profile" element={<Profile />} /> {/* Sign Up Page */}
-            
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={<Login />} /> {/* Login Page */}
+      <Route path="/signup" element={<SignUp />} /> {/* Sign Up Page */}
 
-            <Route
-                path="/dashboard"
-                element={
-                    <ProtectedRoute>
-                        <UserDashboard />
-                    </ProtectedRoute>
-                }
-            /> {/* User Dashboard */}
-            
-            {/* <Route
-                path="/admin"
-                element={
-                    <ProtectedRoute>
-                        < />
-                    </ProtectedRoute>
-                }
-            /> Admin Dashboard */}
-            
-            {/* <Route
-                path="/profile"
-                element={
-                    <ProtectedRoute>
-                        <Profile />
-                    </ProtectedRoute>
-                }
-            /> Profile Page */}
-            
-            <Route path="/notifications" element={<Notifications />} /> {/* Notifications Page */}
-            
-            <Route path="*" element={<ErrorPage />} /> {/* Error Page for undefined routes */}
-        </Routes>
-    );
+      {/* Main Layout for protected routes */}
+      <Route path="/" element={<MainLayout />}>
+        {/* Protected Routes can be added here as needed */}
+        <Route path="/dashboard" element={<UserDashboard />} /> {/* User Dashboard */}
+        <Route path="/admin" element={<AdminDashboard />} /> {/* Admin Dashboard */}
+        <Route path="/profile" element={<Profile />} /> {/* Profile Page */}
+        <Route path="/projects" element={<Projects />} /> {/* Projects Page */}
+        
+      </Route>
+      <Route path="/notifications" element={<Notifications />} /> {/* Notifications Page */}
+
+      {/* Error Page for undefined routes */}
+      <Route path="*" element={<ErrorPage />} /> 
+    </Routes>
+  );
 };
 
 export default AppRoutes;

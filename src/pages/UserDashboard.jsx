@@ -8,9 +8,7 @@ import KanbanBoard from "../components/KanBanBoard";
 const UserDashboard = () => {
   return (
     <div className="flex h-screen bg-gray-100"> {/* Light background for contrast */}
-      <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Navbar />
         <main className="flex-1 p-8 overflow-auto bg-white text-gray-800"> {/* Lighter main content area */}
           <h1 className="text-3xl font-semibold mb-6 text-teal-600">User Dashboard</h1> {/* Teal accent for title */}
           
