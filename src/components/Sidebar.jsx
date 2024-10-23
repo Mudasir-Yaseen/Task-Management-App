@@ -38,35 +38,52 @@ const Sidebar = () => {
               <span className="ml-3">Profile</span>
             </NavLink>
           </li>
+
+          {/* Admin Section */}
           {user && user.isAdmin && ( // Check if the user is an admin
-            <li className="mb-2">
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `flex items-center p-4 rounded-lg transition duration-200 ease-in-out ${
-                    isActive ? 'bg-teal-600 text-white' : 'text-gray-300 hover:bg-teal-500 hover:text-white'
-                  }`
-                }
-              >
-                <span className="material-icons">admin_panel_settings</span>
-                <span className="ml-3">Admin Panel</span>
-              </NavLink>
-            </li>
+            <>
+              <li className="mb-2">
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `flex items-center p-4 rounded-lg transition duration-200 ease-in-out ${
+                      isActive ? 'bg-teal-600 text-white' : 'text-gray-300 hover:bg-teal-500 hover:text-white'
+                    }`
+                  }
+                >
+                  <span className="material-icons">admin_panel_settings</span>
+                  <span className="ml-3">Admin Panel</span>
+                </NavLink>
+              </li>
+              <li className="mb-2">
+                <NavLink
+                  to="/manage-users" // Link to Manage Users
+                  className={({ isActive }) =>
+                    `flex items-center p-4 rounded-lg transition duration-200 ease-in-out ${
+                      isActive ? 'bg-teal-600 text-white' : 'text-gray-300 hover:bg-teal-500 hover:text-white'
+                    }`
+                  }
+                >
+                  <span className="material-icons">group</span> {/* Group icon for manage users */}
+                  <span className="ml-3">Manage Users</span>
+                </NavLink>
+              </li>
+            </>
           )}
+
           <li className="mb-2">
             <NavLink
-              to="/projects" // Updated route for Projects
+              to="/projects"
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg transition duration-200 ease-in-out ${
                   isActive ? 'bg-teal-600 text-white' : 'text-gray-300 hover:bg-teal-500 hover:text-white'
                 }`
               }
             >
-              <span className="material-icons">folder</span> {/* You can change the icon as needed */}
+              <span className="material-icons">folder</span> {/* Folder icon for projects */}
               <span className="ml-3">Projects</span>
             </NavLink>
           </li>
-          {/* Removed the Logout link */}
         </ul>
       </nav>
     </aside>

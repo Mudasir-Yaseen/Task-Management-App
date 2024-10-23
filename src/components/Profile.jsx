@@ -27,12 +27,13 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white shadow-lg rounded-lg p-6">
-      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+    <div className="max-w-md mx-auto mt-10 bg-white shadow-xl rounded-lg p-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Profile</h1>
+      
       {isEditing ? (
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-gray-700">
+          <div className="mb-5">
+            <label htmlFor="name" className="block text-gray-700 font-semibold mb-2">
               Name
             </label>
             <input
@@ -41,12 +42,13 @@ const Profile = () => {
               name="name"
               value={editedUser.name}
               onChange={handleChange}
-              className="border border-gray-300 rounded-md p-2 w-full"
+              className="border border-gray-300 rounded-md p-3 w-full focus:ring focus:ring-teal-300 focus:outline-none"
               required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700">
+
+          <div className="mb-5">
+            <label htmlFor="email" className="block text-gray-700 font-semibold mb-2">
               Email
             </label>
             <input
@@ -55,12 +57,13 @@ const Profile = () => {
               name="email"
               value={editedUser.email}
               onChange={handleChange}
-              className="border border-gray-300 rounded-md p-2 w-full"
+              className="border border-gray-300 rounded-md p-3 w-full focus:ring focus:ring-teal-300 focus:outline-none"
               required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="role" className="block text-gray-700">
+
+          <div className="mb-5">
+            <label htmlFor="role" className="block text-gray-700 font-semibold mb-2">
               Role
             </label>
             <input
@@ -69,32 +72,33 @@ const Profile = () => {
               name="role"
               value={editedUser.role}
               onChange={handleChange}
-              className="border border-gray-300 rounded-md p-2 w-full"
+              className="border border-gray-300 rounded-md p-3 w-full bg-gray-100 cursor-not-allowed"
               required
               readOnly
             />
           </div>
+
           <button
             type="submit"
-            className="bg-blue-600 text-white rounded-md p-2 w-full hover:bg-blue-700"
+            className="bg-teal-600 text-white rounded-md py-3 w-full hover:bg-teal-500 transition-colors duration-200"
           >
             Save Changes
           </button>
         </form>
       ) : (
         <div>
-          <p className="text-gray-700">
-            <strong>Name:</strong> {user.name}
+          <p className="text-gray-700 mb-4">
+            <strong className="font-semibold">Name:</strong> {user.name}
           </p>
-          <p className="text-gray-700">
-            <strong>Email:</strong> {user.email}
+          <p className="text-gray-700 mb-4">
+            <strong className="font-semibold">Email:</strong> {user.email}
           </p>
-          <p className="text-gray-700">
-            <strong>Role:</strong> {user.role}
+          <p className="text-gray-700 mb-6">
+            <strong className="font-semibold">Role:</strong> {user.role}
           </p>
           <button
             onClick={() => setIsEditing(true)}
-            className="bg-blue-600 text-white rounded-md p-2 mt-4 hover:bg-blue-700"
+            className="bg-teal-600 text-white rounded-md py-3 w-full hover:bg-teal-500 transition-colors duration-200"
           >
             Edit Profile
           </button>
