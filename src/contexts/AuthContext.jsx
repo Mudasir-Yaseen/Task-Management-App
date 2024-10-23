@@ -1,26 +1,30 @@
 // src/contexts/AuthContext.jsx
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
-// Create the AuthContext
 export const AuthContext = createContext();
 
-// Create the AuthProvider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
-    const login = (email, password) => {
-        // Mock login function; replace with actual API call
-        const mockUser = { email }; // Mock user data
-        setUser(mockUser);
-        return Promise.resolve(mockUser); // Simulating successful login
-    };
+    // Load user from local storage on initial render
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
-    const logout = () => {
-        setUser(null);
-    };
+    // Store user in local storage whenever it changes
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+        } else {
+            localStorage.removeItem('user');
+        }
+    }, [user]);
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, setUser }}>
             {children}
         </AuthContext.Provider>
     );

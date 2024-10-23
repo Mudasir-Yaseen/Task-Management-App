@@ -50,44 +50,89 @@ const ManageUsers = () => {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
-        <>
-          <Button onClick={() => openModal(record)} type="link">Edit</Button>
-          <Button onClick={() => handleDelete(record.id)} type="link" danger>Delete</Button>
-        </>
+        <div className="flex space-x-2">
+          <Button onClick={() => openModal(record)} type="link" className="text-teal-500">Edit</Button>
+          <Button onClick={() => handleDelete(record.id)} type="link" danger className="text-red-500">Delete</Button>
+        </div>
       ),
     },
   ];
 
   return (
-    <div>
-      <Button type="primary" onClick={() => openModal()}>+ Add User</Button>
+    <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
+      <div className="flex justify-between mb-4">
+        <h2 className="text-white text-xl font-semibold">Manage Users</h2>
+        <Button
+          type="primary"
+          onClick={() => openModal()}
+          className="bg-teal-600 hover:bg-teal-700 text-white border-none rounded-lg shadow-md"
+        >
+          + Add User
+        </Button>
+      </div>
 
-      <Table columns={columns} dataSource={users} rowKey="id" />
+      <Table
+        columns={columns}
+        dataSource={users}
+        rowKey="id"
+        className="bg-gray-800 text-white rounded-lg shadow-md"
+        pagination={{ className: 'bg-gray-800 text-gray-300' }}
+      />
 
       <Modal
         title={editingUser ? "Edit User" : "Add User"}
         open={isModalOpen}
         onCancel={handleModalClose}
         footer={null}
+        centered
+        className="rounded-lg bg-gray-900 text-white shadow-lg"
+        bodyStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', padding: '20px' }}
       >
         <Form
           initialValues={editingUser}
           onFinish={handleFormSubmit}
+          layout="vertical"
+          className="text-gray-300"
         >
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter the name' }]}>
-            <Input placeholder="Enter name" />
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: 'Please enter the name' }]}
+            className="text-gray-300"
+          >
+            <Input
+              placeholder="Enter name"
+              className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+            />
           </Form.Item>
-          <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Please enter the email' }]}>
-            <Input placeholder="Enter email" />
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, message: 'Please enter the email' }]}
+            className="text-gray-300"
+          >
+            <Input
+              placeholder="Enter email"
+              className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+            />
           </Form.Item>
-          <Form.Item name="role" label="Role" rules={[{ required: true, message: 'Please select a role' }]}>
-            <Select placeholder="Select role">
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: 'Please select a role' }]}
+            className="text-gray-300"
+          >
+            <Select
+              placeholder="Select role"
+              className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+              dropdownClassName="bg-gray-700 text-white"
+            >
               <Option value="admin">Admin</Option>
               <Option value="user">User</Option>
             </Select>
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
+          <Form.Item className="flex justify-end">
+            <Button type="primary" htmlType="submit" className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg">
               {editingUser ? "Save Changes" : "Create User"}
             </Button>
           </Form.Item>

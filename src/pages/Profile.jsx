@@ -1,11 +1,24 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../contexts/AuthContext";
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   const { user, updateUserProfile } = useContext(AuthContext);
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Use useEffect to set initial state when user data is available
+  useEffect(() => {
+    if (user) {
+      setName(user.name || ""); // Provide default value if name is null
+      setEmail(user.email || ""); // Provide default value if email is null
+    } else {
+      // Redirect to login if user is null
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();

@@ -1,10 +1,8 @@
 // src/components/MainLayout.jsx
-
 import React from 'react';
-import { Outlet } from 'react-router-dom'; // Adjust the import path if needed
-import Sidebar from './Sidebar'; // Adjust the import path if needed
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
 import Navbar from './Navbar';
-
 
 const MainLayout = () => {
   return (

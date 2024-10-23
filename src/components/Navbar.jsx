@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTachometerAlt, faUser, faSignOutAlt, faChevronDown, faBell } from '@fortawesome/free-solid-svg-icons';
 import useAuth from '../hooks/useAuth';
@@ -12,13 +12,15 @@ const notificationsData = [
 ];
 
 const Navbar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); // Access user and logout function from auth hook
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate(); // Initialize navigate for redirection
 
   const handleLogout = () => {
-    console.log("User logged out");
+    logout(); // Call the logout function
+    navigate('/login'); // Redirect to login page after logout
   };
 
   const handleClickOutside = (event) => {

@@ -1,6 +1,5 @@
-// KanbanBoard.jsx
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"; // Ensure you're using the correct package
 
 const initialTasks = {
   todo: [
@@ -24,24 +23,34 @@ const KanbanBoard = () => {
 
     const { source, destination } = result;
 
-    // If moving between lists
+    // If moving between different columns
     if (source.droppableId !== destination.droppableId) {
-      const sourceColumn = tasks[source.droppableId];
-      const destColumn = tasks[destination.droppableId];
+      const sourceColumn = Array.from(tasks[source.droppableId]);
+      const destColumn = Array.from(tasks[destination.droppableId]);
+      
+      // Remove task from the source column and store it
       const [movedTask] = sourceColumn.splice(source.index, 1);
+      
+      // Insert the task into the destination column
       destColumn.splice(destination.index, 0, movedTask);
-
+      
+      // Update the state with new columns
       setTasks({
         ...tasks,
         [source.droppableId]: sourceColumn,
         [destination.droppableId]: destColumn,
       });
     } else {
-      // Moving within the same list
-      const column = tasks[source.droppableId];
+      // Moving within the same column
+      const column = Array.from(tasks[source.droppableId]);
+      
+      // Remove task from the current index and store it
       const [movedTask] = column.splice(source.index, 1);
+      
+      // Insert the task into its new index
       column.splice(destination.index, 0, movedTask);
-
+      
+      // Update the state with the modified column
       setTasks({
         ...tasks,
         [source.droppableId]: column,

@@ -1,7 +1,6 @@
 // UserDashboard.jsx
 import React from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../Components/Navbar";
+
 import KanbanBoard from "../components/KanBanBoard";
  // Import the KanbanBoard
 
