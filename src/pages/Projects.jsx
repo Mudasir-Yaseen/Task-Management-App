@@ -1,7 +1,9 @@
 // src/pages/Projects.jsx
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import useAuth from '../hooks/useAuth';
+import { CheckCircleIcon } from '@heroicons/react/outline'; // Import an icon
 
 const Projects = () => {
   const { user } = useAuth();
@@ -19,7 +21,6 @@ const Projects = () => {
   
   useEffect(() => {
     // Fetch projects from an API or database
-    // For now, we'll use dummy data
     setProjects([
       { id: 1, name: 'Project A', description: 'Description A', assignedTo: 'Alice' },
       { id: 2, name: 'Project B', description: 'Description B', assignedTo: 'Bob' },
@@ -47,17 +48,22 @@ const Projects = () => {
         <h3 className="text-lg font-semibold mb-2">Project List</h3>
         <ul className="space-y-2">
           {projects.map((project) => (
-            <li key={project.id} className="p-4 border rounded-md shadow-sm bg-gray-50">
-              <h4 className="font-bold">{project.name}</h4>
-              <p>{project.description}</p>
-              <p className="text-sm text-gray-600">Assigned to: {project.assignedTo}</p>
+            <li key={project.id} className="p-4 border rounded-md shadow-sm bg-gray-50 flex justify-between items-center">
+              <div>
+                <h4 className="font-bold">{project.name}</h4>
+                <p>{project.description}</p>
+                <p className="text-sm text-gray-600">Assigned to: {project.assignedTo}</p>
+              </div>
+              <Link to={`/tasks`} className="text-teal-600 hover:text-teal-700 ml-4">
+                <CheckCircleIcon className="w-6 h-6" />
+              </Link>
             </li>
           ))}
         </ul>
       </div>
       
       {/* Create New Project */}
-      {user.isAdmin && ( // Show this form only if the user is an admin
+      {user.isAdmin && (
         <form onSubmit={handleCreateProject} className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Create New Project</h3>
           <input

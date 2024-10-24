@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"; // Ensure you're using the correct package
 
+// Initial tasks with five columns
 const initialTasks = {
   todo: [
     { id: '1', title: 'Design the landing page' },
@@ -9,8 +10,14 @@ const initialTasks = {
   inProgress: [
     { id: '3', title: 'Implement authentication' },
   ],
-  done: [
-    { id: '4', title: 'Create user documentation' },
+  testing: [
+    { id: '4', title: 'Write unit tests' },
+  ],
+  hold: [
+    { id: '5', title: 'Wait for client feedback' },
+  ],
+  completed: [
+    { id: '6', title: 'Create user documentation' },
   ],
 };
 
@@ -60,16 +67,16 @@ const KanbanBoard = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 overflow-x-auto">
         {Object.keys(tasks).map((columnId) => (
           <Droppable key={columnId} droppableId={columnId}>
             {(provided) => (
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="w-1/3 bg-gray-200 p-4 rounded-lg shadow-md"
+                className="w-1/5 bg-gray-200 p-4 rounded-lg shadow-md"
               >
-                <h2 className="text-lg font-bold mb-4 capitalize">{columnId}</h2>
+                <h2 className="text-lg font-bold mb-4 capitalize">{columnId.replace(/([A-Z])/g, ' $1')}</h2>
                 {tasks[columnId].map((task, index) => (
                   <Draggable key={task.id} draggableId={task.id} index={index}>
                     {(provided) => (

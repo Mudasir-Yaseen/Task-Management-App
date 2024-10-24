@@ -6,16 +6,31 @@ const Profile = () => {
     name: 'John Doe',
     email: 'john.doe@example.com',
     role: 'User', // or 'Admin'
+    photo: 'https://via.placeholder.com/150', // Placeholder image URL
   });
 
   // Local state for editing user details
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({ ...user });
+  const [photoPreview, setPhotoPreview] = useState(user.photo);
 
-  // Handle input change
+  // Handle input change for text fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditedUser((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle photo upload and preview
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPhotoPreview(reader.result);
+        setEditedUser((prev) => ({ ...prev, photo: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Handle form submission
@@ -31,7 +46,24 @@ const Profile = () => {
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Profile</h1>
       
       {isEditing ? (
+        // Edit profile form
         <form onSubmit={handleSubmit}>
+          <div className="mb-5">
+            <label htmlFor="photo" className="block text-gray-700 font-semibold mb-2">
+              Profile Photo
+            </label>
+            <div className="flex items-center">
+              <img src={photoPreview} alt="Profile" className="w-20 h-20 rounded-full object-cover mr-4" />
+              <input
+                type="file"
+                id="photo"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="border border-gray-300 rounded-md p-2"
+              />
+            </div>
+          </div>
+
           <div className="mb-5">
             <label htmlFor="name" className="block text-gray-700 font-semibold mb-2">
               Name
@@ -86,14 +118,16 @@ const Profile = () => {
           </button>
         </form>
       ) : (
-        <div>
+        // Display user profile
+        <div className="text-center">
+          <img src={user.photo} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
           <p className="text-gray-700 mb-4">
             <strong className="font-semibold">Name:</strong> {user.name}
           </p>
           <p className="text-gray-700 mb-4">
             <strong className="font-semibold">Email:</strong> {user.email}
           </p>
-          <p className="text-gray-700 mb-6">
+          <p className="text-gray-700 mb-4">
             <strong className="font-semibold">Role:</strong> {user.role}
           </p>
           <button

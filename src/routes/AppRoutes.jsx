@@ -12,6 +12,7 @@ import Projects from "../pages/Projects";
 import MainLayout from "../components/MainLayout";
 import ManageUsers from "../pages/ManageUsers";
 import ProtectedRoute from "../../src/routes/ProtectedRoute"; // Import ProtectedRoute
+import TasksPage from "../pages/TaskPage";
 
 const AppRoutes = () => {
     return (
@@ -29,6 +30,9 @@ const AppRoutes = () => {
                     <Route path="/manage-users" element={<ManageUsers />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/projects" element={<Projects />} />
+                    <Route path="/tasks" element={<TasksPage />} />
+
+                    
                 </Route>
             </Route>
 
