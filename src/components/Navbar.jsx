@@ -19,10 +19,11 @@ const Navbar = () => {
   const navigate = useNavigate(); // Initialize navigate for redirection
 
   const handleLogout = () => {
+    console.log("Logging out..."); // Check if this is logged
     logout(); // Call the logout function
     navigate('/login'); // Redirect to login page after logout
   };
-
+  
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsDropdownOpen(false);
@@ -85,7 +86,7 @@ const Navbar = () => {
           {isDropdownOpen && (
             <div className="absolute right-0 w-48 bg-gray-800 rounded-md shadow-lg mt-2 z-10">
               <Link 
-                to="/" 
+                to="/dashboard" // Updated path to "/dashboard"
                 className="block px-4 py-2 text-gray-300 hover:bg-teal-500 hover:text-white"
                 onClick={() => setIsDropdownOpen(false)}
               >

@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, Select } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUsers, createUser, updateUser, deleteUser } from '../services/userSlice';
 
 const { Option } = Select;
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
+  const { users, loading, error } = useSelector((state) => state.users); // Select users from Redux state
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  // Fetch users from an API or mock data
   useEffect(() => {
-    const mockUsers = [
-      { id: 1, name: 'John Doe', email: 'john@example.com', role: 'admin', status: 'active' },
-      { id: 2, name: 'Jane Doe', email: 'jane@example.com', role: 'user', status: 'inactive' },
-    ];
-    setUsers(mockUsers);
-  }, []);
+    dispatch(fetchUsers({ page: 1, limit: 10 })); // Fetch users on component mount
+  }, [dispatch]);
 
   const openModal = (user = null) => {
     setEditingUser(user);
@@ -28,15 +27,14 @@ const ManageUsers = () => {
   };
 
   const handleDelete = (userId) => {
-    setUsers(users.filter((user) => user.id !== userId));
+    dispatch(deleteUser(userId)); // Dispatch delete action
   };
 
   const handleFormSubmit = (values) => {
     if (editingUser) {
-      setUsers(users.map((user) => (user.id === editingUser.id ? { ...editingUser, ...values } : user)));
+      dispatch(updateUser({ id: editingUser.id, userData: values }));
     } else {
-      const newUser = { ...values, id: Date.now(), status: 'active' };
-      setUsers([...users, newUser]);
+      dispatch(createUser(values));
     }
     handleModalClose();
   };
@@ -71,13 +69,19 @@ const ManageUsers = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={users}
-        rowKey="id"
-        className="bg-gray-800 text-white rounded-lg shadow-md"
-        pagination={{ className: 'bg-gray-800 text-gray-300' }}
-      />
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <div>Error: {error.message}</div>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={users}
+          rowKey="id"
+          className="bg-gray-800 text-white rounded-lg shadow-md"
+          pagination={{ className: 'bg-gray-800 text-gray-300' }}
+        />
+      )}
 
       <Modal
         title={editingUser ? "Edit User" : "Add User"}
@@ -131,6 +135,19 @@ const ManageUsers = () => {
               <Option value="user">User</Option>
             </Select>
           </Form.Item>
+          {!editingUser && (
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[{ required: true, message: 'Please enter a password' }]}
+              className="text-gray-300"
+            >
+              <Input.Password
+                placeholder="Enter password"
+                className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+              />
+            </Form.Item>
+          )}
           <Form.Item className="flex justify-end">
             <Button type="primary" htmlType="submit" className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg">
               {editingUser ? "Save Changes" : "Create User"}

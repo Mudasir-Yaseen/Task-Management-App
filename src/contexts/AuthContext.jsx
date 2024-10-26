@@ -23,8 +23,14 @@ export const AuthProvider = ({ children }) => {
         }
     }, [user]);
 
+    // Logout function
+    const logout = () => {
+        setUser(null); // Clear user state
+        localStorage.removeItem('user'); // Remove user from local storage
+    };
+
     return (
-        <AuthContext.Provider value={{ user, setUser }}>
+        <AuthContext.Provider value={{ user, setUser, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,46 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTasks } from '../services/taskSlice'; // Adjust the import path accordingly
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Dialog } from "@headlessui/react";
 import { PlusIcon, TrashIcon, PencilIcon } from "@heroicons/react/outline";
 
-const initialColumns = {
-  todo: {
-    name: "To Do",
-    items: [
-      { id: "1", content: "Task 1", assignee: "User A", priority: "High", dueDate: "2024-10-30" },
-      { id: "2", content: "Task 2", assignee: "User B", priority: "Medium", dueDate: "2024-11-05" },
-    ],
-  },
-  inProgress: {
-    name: "In Progress",
-    items: [],
-  },
-  testing: {
-    name: "Testing",
-    items: [],
-  },
-  hold: {
-    name: "Hold",
-    items: [],
-  },
-  completed: {
-    name: "Completed",
-    items: [],
-  },
-};
-
-const users = ["User A", "User B", "User C", "User D", "User E"];
-
 const TasksPage = () => {
-  const [columns, setColumns] = useState(initialColumns);
+  const dispatch = useDispatch();
+  const { tasks, loading, error } = useSelector((state) => state.tasks);
+  
+  // State variables for managing the UI
+  const [columns, setColumns] = useState({
+    todo: { name: "To Do", items: [] },
+    inProgress: { name: "In Progress", items: [] },
+    testing: { name: "Testing", items: [] },
+    hold: { name: "Hold", items: [] },
+    completed: { name: "Completed", items: [] },
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [newTask, setNewTask] = useState("");
-  const [selectedUser, setSelectedUser] = useState(users[0]);
+  const [selectedUser, setSelectedUser] = useState("User A");
   const [taskPriority, setTaskPriority] = useState("Medium");
   const [dueDate, setDueDate] = useState("");
   const [editTask, setEditTask] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+
+  // Fetch tasks when the component mounts
+  useEffect(() => {
+    const projectId = 'your_project_id'; // replace with actual project ID
+    dispatch(fetchTasks(projectId));
+  }, [dispatch]);
+
+  // Update columns when tasks are fetched
+  useEffect(() => {
+    const updatedColumns = { ...columns };
+    tasks.forEach(task => {
+      if (task.status === "todo") {
+        updatedColumns.todo.items.push(task);
+      } else if (task.status === "inProgress") {
+        updatedColumns.inProgress.items.push(task);
+      } else if (task.status === "testing") {
+        updatedColumns.testing.items.push(task);
+      } else if (task.status === "hold") {
+        updatedColumns.hold.items.push(task);
+      } else if (task.status === "completed") {
+        updatedColumns.completed.items.push(task);
+      }
+    });
+    setColumns(updatedColumns);
+  }, [tasks]); // Update columns when tasks change
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -70,15 +79,10 @@ const TasksPage = () => {
       assignee: selectedUser,
       priority: taskPriority,
       dueDate: dueDate,
+      status: "todo", // Set initial status
     };
 
-    setColumns((prevColumns) => ({
-      ...prevColumns,
-      todo: {
-        ...prevColumns.todo,
-        items: [...prevColumns.todo.items, newTaskObject],
-      },
-    }));
+    // Dispatch your createTask action here if needed
     resetTaskInputs();
   };
 
@@ -91,49 +95,19 @@ const TasksPage = () => {
     setIsOpen(true);
   };
 
-  const handleUpdateTask = () => {
-    if (!editTask) return;
-
-    const updatedTaskObject = {
-      ...editTask,
-      content: newTask,
-      assignee: selectedUser,
-      priority: taskPriority,
-      dueDate: dueDate,
-    };
-
-    const updatedColumns = { ...columns };
-    for (const column of Object.values(updatedColumns)) {
-      column.items = column.items.map((item) =>
-        item.id === editTask.id ? updatedTaskObject : item
-      );
-    }
-
-    setColumns(updatedColumns);
-    resetTaskInputs();
-  };
-
   const handleDeleteTask = (columnId, itemId) => {
     setConfirmDelete({ columnId, itemId });
   };
 
   const confirmDeleteTask = () => {
     if (!confirmDelete) return;
-
-    setColumns((prevColumns) => {
-      const column = prevColumns[confirmDelete.columnId];
-      const filteredItems = column.items.filter((item) => item.id !== confirmDelete.itemId);
-      return {
-        ...prevColumns,
-        [confirmDelete.columnId]: { ...column, items: filteredItems },
-      };
-    });
+    // Dispatch deleteTask action here
     setConfirmDelete(null);
   };
 
   const resetTaskInputs = () => {
     setNewTask("");
-    setSelectedUser(users[0]);
+    setSelectedUser("User A");
     setTaskPriority("Medium");
     setDueDate("");
     setIsOpen(false);
@@ -225,11 +199,9 @@ const TasksPage = () => {
               onChange={(e) => setSelectedUser(e.target.value)}
               className="w-full p-2 border mb-2 rounded"
             >
-              {users.map((user) => (
-                <option key={user} value={user}>
-                  {user}
-                </option>
-              ))}
+              <option value="User A">User A</option>
+              <option value="User B">User B</option>
+              <option value="User C">User C</option>
             </select>
             <select
               value={taskPriority}
@@ -244,38 +216,30 @@ const TasksPage = () => {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full p-2 border mb-4 rounded"
+              className="w-full p-2 border mb-2 rounded"
             />
             <div className="flex justify-end">
-              <button
-                onClick={editTask ? handleUpdateTask : handleAddTask}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
+              <button onClick={resetTaskInputs} className="mr-2 text-gray-500">Cancel</button>
+              <button onClick={handleAddTask} className="bg-blue-500 text-white p-2 rounded">
                 {editTask ? "Update Task" : "Add Task"}
               </button>
             </div>
           </div>
         </div>
       </Dialog>
-      {confirmDelete && (
-        <Dialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)}>
-          <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
-          <div className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 shadow-lg max-w-sm">
-              <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
-              <p>Are you sure you want to delete this task?</p>
-              <div className="flex justify-end mt-4">
-                <button onClick={confirmDeleteTask} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 mr-2">
-                  Delete
-                </button>
-                <button onClick={() => setConfirmDelete(null)} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
-                  Cancel
-                </button>
-              </div>
+      <Dialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} className="relative z-50">
+        <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 shadow-lg max-w-sm">
+            <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this task?</p>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => setConfirmDelete(null)} className="mr-2 text-gray-500">Cancel</button>
+              <button onClick={confirmDeleteTask} className="bg-red-500 text-white p-2 rounded">Delete</button>
             </div>
           </div>
-        </Dialog>
-      )}
+        </div>
+      </Dialog>
     </div>
   );
 };
