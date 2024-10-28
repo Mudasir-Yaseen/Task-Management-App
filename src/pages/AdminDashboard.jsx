@@ -23,13 +23,6 @@ const AdminDashboard = () => {
             <p>Manage your projects effectively.</p>
           </div>
           <div
-            className="bg-green-500 text-white p-6 rounded-lg shadow-md cursor-pointer hover:bg-green-600"
-            onClick={() => handleNavigate('/tasks')}
-          >
-            <h2 className="text-xl font-bold">Task Management</h2>
-            <p>Keep track of your tasks.</p>
-          </div>
-          <div
             className="bg-yellow-500 text-white p-6 rounded-lg shadow-md cursor-pointer hover:bg-yellow-600"
             onClick={() => handleNavigate('/manage-users')}
           >

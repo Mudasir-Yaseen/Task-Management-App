@@ -10,18 +10,25 @@ const Projects = () => {
   const dispatch = useDispatch();
   const { user } = useAuth();
 
-  const { projects, loading } = useSelector((state) => state.projects);
+  const { projects, loading, totalProjects } = useSelector((state) => state.projects);
   const { users } = useSelector((state) => state.users);
 
   const [newProject, setNewProject] = useState({ name: '', description: '', assignedTo: '', is_active: true });
   const [editProject, setEditProject] = useState(null);
   const [assignProject, setAssignProject] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10; // Number of projects per page
 
   useEffect(() => {
-    dispatch(fetchProjects({ page: 1, limit: 10 }));
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    dispatch(fetchProjects({ page, limit }));
+  }, [dispatch, page]);
+
+  useEffect(() => {
+    if (showCreateForm && users.length === 0) {
+      dispatch(fetchUsers({ page: 1, limit: 10 }));
+    }
+  }, [showCreateForm, dispatch, users.length]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,6 +41,7 @@ const Projects = () => {
       await dispatch(createProject(newProject)).unwrap();
       setNewProject({ name: '', description: '', assignedTo: '', is_active: true });
       setShowCreateForm(false);
+      dispatch(fetchProjects({ page, limit })); // Refresh the list
     } catch (error) {
       console.error('Failed to create project', error);
     }
@@ -43,8 +51,7 @@ const Projects = () => {
     e.preventDefault();
     if (editProject) {
       try {
-        const updatedProject = { ...editProject, is_active: editProject.is_active ?? true }; // Ensure is_active is boolean
-        await dispatch(updateProject({ id: editProject.id, projectData: updatedProject })).unwrap();
+        await dispatch(updateProject({ id: editProject.id, projectData: editProject })).unwrap();
         setEditProject(null);
       } catch (error) {
         console.error('Failed to update project', error);
@@ -55,6 +62,7 @@ const Projects = () => {
   const handleDeleteProject = async (projectId) => {
     try {
       await dispatch(deleteProject(projectId)).unwrap();
+      dispatch(fetchProjects({ page, limit })); // Refresh the list
     } catch (error) {
       console.error('Failed to delete project', error);
     }
@@ -72,60 +80,60 @@ const Projects = () => {
     }
   };
 
+  const totalPages = Math.ceil(totalProjects / limit); // Calculate total pages
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <h2 className="text-xl font-bold text-gray-700 mb-4">Projects</h2>
 
-      {user.isAdmin && (
-        <div className="mb-6">
-          <button
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mb-4"
-          >
-            {showCreateForm ? "Cancel" : "Create New Project"}
-          </button>
+      <div className="mb-6">
+        <button
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mb-4 transition duration-200"
+        >
+          {showCreateForm ? "Cancel" : "Create New Project"}
+        </button>
 
-          {showCreateForm && (
-            <form onSubmit={handleCreateProject} className="mb-6">
-              <input
-                type="text"
-                name="name"
-                placeholder="Project Name"
-                value={newProject.name}
-                onChange={handleInputChange}
-                required
-                className="border p-2 mb-2 w-full rounded"
-              />
-              <textarea
-                name="description"
-                placeholder="Project Description"
-                value={newProject.description}
-                onChange={handleInputChange}
-                required
-                className="border p-2 mb-2 w-full rounded"
-              />
-              <select
-                name="assignedTo"
-                value={newProject.assignedTo}
-                onChange={handleInputChange}
-                required
-                className="border p-2 mb-2 w-full rounded"
-              >
-                <option value="">Assign to User</option>
-                {users.map(user => (
-                  <option key={user.id} value={user.name}>{user.name}</option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700"
-              >
-                Create Project
-              </button>
-            </form>
-          )}
-        </div>
-      )}
+        {showCreateForm && (
+          <form onSubmit={handleCreateProject} className="mb-6">
+            <input
+              type="text"
+              name="name"
+              placeholder="Project Name"
+              value={newProject.name}
+              onChange={handleInputChange}
+              required
+              className="border p-2 mb-2 w-full rounded"
+            />
+            <textarea
+              name="description"
+              placeholder="Project Description"
+              value={newProject.description}
+              onChange={handleInputChange}
+              required
+              className="border p-2 mb-2 w-full rounded"
+            />
+            <select
+              name="assignedTo"
+              value={newProject.assignedTo}
+              onChange={handleInputChange}
+              required
+              className="border p-2 mb-2 w-full rounded"
+            >
+              <option value="">Assign to User</option>
+              {users.map(user => (
+                <option key={user.id} value={user.name}>{user.name}</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition duration-200"
+            >
+              Create Project
+            </button>
+          </form>
+        )}
+      </div>
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Project List</h3>
@@ -145,11 +153,11 @@ const Projects = () => {
                 </div>
                 
                 <div className="flex space-x-4">
-                  <Link to={`/tasks`} className="text-teal-600 hover:text-teal-700">
+                  <Link to={`/tasks/${project.id}`} className="text-teal-600 hover:text-teal-700">
                     <CheckCircleIcon className="w-6 h-6" />
                   </Link>
                   <button
-                    onClick={() => setEditProject({ ...project })} // Spread project to maintain state
+                    onClick={() => setEditProject({ ...project })}
                     className="text-yellow-600 hover:text-yellow-700"
                   >
                     Edit
@@ -161,7 +169,7 @@ const Projects = () => {
                     Delete
                   </button>
                   <button
-                    onClick={() => setAssignProject({ ...project })} // Spread project to maintain state
+                    onClick={() => setAssignProject({ ...project })}
                     className="text-blue-600 hover:text-blue-700"
                   >
                     Re-assign
@@ -188,12 +196,12 @@ const Projects = () => {
                     />
                     <button
                       onClick={handleEditProject}
-                      className="bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700"
+                      className="bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700 transition duration-200"
                     >
                       Update Project
                     </button>
                     <button
-                      onClick={() => setEditProject(null)} // Close modal
+                      onClick={() => setEditProject(null)}
                       className="text-gray-600 ml-2"
                     >
                       Cancel
@@ -218,12 +226,12 @@ const Projects = () => {
                     </select>
                     <button
                       onClick={handleReassignProject}
-                      className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+                      className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200"
                     >
                       Re-assign Project
                     </button>
                     <button
-                      onClick={() => setAssignProject(null)} // Close modal
+                      onClick={() => setAssignProject(null)}
                       className="text-gray-600 ml-2"
                     >
                       Cancel
@@ -234,6 +242,29 @@ const Projects = () => {
             ))}
           </ul>
         )}
+      </div>
+
+      {/* Advanced Pagination */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+          className={`py-2 px-4 rounded ${page === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 transition duration-200'}`}
+        >
+          Previous
+        </button>
+        
+        <span className="text-gray-600">
+          Page {page} of {totalPages}
+        </span>
+
+        <button
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages}
+          className={`py-2 px-4 rounded ${page === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 transition duration-200'}`}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

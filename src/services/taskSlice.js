@@ -16,7 +16,7 @@ export const fetchTasks = createAsyncThunk(
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      return response.data; // Assuming the tasks are in response.data
+      return response.data.data || []; // Ensure response contains an array of tasks
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: 'Failed to fetch tasks' });
     }
@@ -83,7 +83,6 @@ export const deleteTask = createAsyncThunk(
   'tasks/deleteTask',
   async ({ projectId, taskId }, { rejectWithValue }) => {
     try {
-      console.log('Project ID:', projectId, 'Task ID:', taskId);  // Log the IDs before making the request
       await axios.delete(`${API_URL}/${projectId}/task/${taskId}`, {
         headers: {
           Accept: 'application/json',
@@ -93,7 +92,6 @@ export const deleteTask = createAsyncThunk(
       });
       return taskId; // Return the taskId to remove from the state
     } catch (error) {
-      console.error('Delete Task Error:', error.response); // Log the error response
       return rejectWithValue(error.response?.data || { message: 'Failed to delete task' });
     }
   }
@@ -122,12 +120,11 @@ export const assignUsersToTask = createAsyncThunk(
 
 // Initial state
 const initialState = {
-  tasks: [],  // List of tasks
-  loading: false, // To handle loading state
-  error: null,    // To store error messages
+  tasks: [],  // Ensure tasks is initialized as an array
+  loading: false,
+  error: null,
 };
 
-// Task slice
 const taskSlice = createSlice({
   name: 'tasks',
   initialState,
@@ -145,7 +142,7 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = action.payload.data; // Assuming the fetched tasks are in action.payload.data
+        state.tasks = action.payload || []; // Ensure tasks is always an array
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
@@ -159,21 +156,21 @@ const taskSlice = createSlice({
       })
       .addCase(createTask.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks.push(action.payload); // Add the newly created task
+        state.tasks = [...state.tasks, action.payload]; // Add the new task to the tasks array
       })
       .addCase(createTask.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // Handle fetchTaskById (can be used to edit task or display detailed task view)
+      // Handle fetchTaskById (if needed to fetch for a specific task)
       .addCase(fetchTaskById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchTaskById.fulfilled, (state, action) => {
         state.loading = false;
-        // You can update a specific task in the state here if needed
+        // Optionally handle fetched task data here, if needed
       })
       .addCase(fetchTaskById.rejected, (state, action) => {
         state.loading = false;
@@ -189,7 +186,7 @@ const taskSlice = createSlice({
         state.loading = false;
         state.tasks = state.tasks.map((task) =>
           task.id === action.payload.id ? action.payload : task
-        ); // Update the task in the state
+        ); // Update the task in the tasks array
       })
       .addCase(updateTask.rejected, (state, action) => {
         state.loading = false;
@@ -203,7 +200,7 @@ const taskSlice = createSlice({
       })
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = state.tasks.filter((task) => task.id !== action.payload);
+        state.tasks = state.tasks.filter((task) => task.id !== action.payload); // Remove task by id
       })
       .addCase(deleteTask.rejected, (state, action) => {
         state.loading = false;
@@ -215,9 +212,9 @@ const taskSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(assignUsersToTask.fulfilled, (state, action) => {
+      .addCase(assignUsersToTask.fulfilled, (state) => {
         state.loading = false;
-        // Handle assigning users to the task if needed
+        // Handle additional actions after assigning users, if needed
       })
       .addCase(assignUsersToTask.rejected, (state, action) => {
         state.loading = false;
