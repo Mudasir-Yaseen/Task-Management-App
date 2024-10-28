@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, Select } from 'antd';
+import { Table, Button, Modal, Form, Input, Select, Checkbox } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, createUser, updateUser, deleteUser } from '../services/userSlice';
 
@@ -7,14 +7,20 @@ const { Option } = Select;
 
 const ManageUsers = () => {
   const dispatch = useDispatch();
-  const { users, loading, error } = useSelector((state) => state.users); // Select users from Redux state
+  const { users, loading, error, totalUsers } = useSelector((state) => state.users);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
-    dispatch(fetchUsers({ page: 1, limit: 10 })); // Fetch users on component mount
-  }, [dispatch]);
+    fetchUsersData();
+  }, [dispatch, currentPage]);
+
+  const fetchUsersData = () => {
+    dispatch(fetchUsers({ page: currentPage, limit: pageSize }));
+  };
 
   const openModal = (user = null) => {
     setEditingUser(user);
@@ -27,7 +33,8 @@ const ManageUsers = () => {
   };
 
   const handleDelete = (userId) => {
-    dispatch(deleteUser(userId)); // Dispatch delete action
+    dispatch(deleteUser(userId));
+    fetchUsersData();
   };
 
   const handleFormSubmit = (values) => {
@@ -37,50 +44,75 @@ const ManageUsers = () => {
       dispatch(createUser(values));
     }
     handleModalClose();
+    fetchUsersData();
   };
 
   const columns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Role', dataIndex: 'role', key: 'role' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
+    { title: 'Name', dataIndex: 'name', key: 'name', className: 'text-gray-700 font-semibold' },
+    { title: 'Email', dataIndex: 'email', key: 'email', className: 'text-gray-700 font-semibold' },
+    { title: 'Role', dataIndex: 'role', key: 'role', className: 'text-gray-700 font-semibold' },
     {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
         <div className="flex space-x-2">
-          <Button onClick={() => openModal(record)} type="link" className="text-teal-500">Edit</Button>
-          <Button onClick={() => handleDelete(record.id)} type="link" danger className="text-red-500">Delete</Button>
+          <Button onClick={() => openModal(record)} type="link" className="text-green-600 hover:text-green-700">Edit</Button>
+          <Button onClick={() => handleDelete(record.id)} type="link" danger className="text-red-500 hover:text-red-600">Delete</Button>
         </div>
       ),
     },
   ];
 
+  const totalPages = Math.ceil(totalUsers / pageSize);
+
   return (
-    <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-white text-xl font-semibold">Manage Users</h2>
+    <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-gray-800 text-2xl font-bold">Manage Users</h2>
         <Button
           type="primary"
           onClick={() => openModal()}
-          className="bg-teal-600 hover:bg-teal-700 text-white border-none rounded-lg shadow-md"
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md"
         >
           + Add User
         </Button>
       </div>
 
       {loading ? (
-        <div>Loading...</div>
+        <div className="text-center text-gray-600">Loading...</div>
       ) : error ? (
-        <div>Error: {error.message}</div>
+        <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          className="bg-gray-800 text-white rounded-lg shadow-md"
-          pagination={{ className: 'bg-gray-800 text-gray-300' }}
-        />
+        <>
+          <Table
+            columns={columns}
+            dataSource={users}
+            rowKey="id"
+            className="bg-gray-50 text-gray-700 rounded-lg shadow-md"
+            pagination={false}
+          />
+          <div className="flex justify-between items-center mt-6">
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`py-2 px-4 rounded-md ${currentPage === 1 ? 'bg-gray-300 text-gray-500' : 'bg-green-600 text-white hover:bg-green-700'}`}
+            >
+              Previous
+            </Button>
+
+            <span className="text-gray-700 font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`py-2 px-4 rounded-md ${currentPage === totalPages ? 'bg-gray-300 text-gray-500' : 'bg-green-600 text-white hover:bg-green-700'}`}
+            >
+              Next
+            </Button>
+          </div>
+        </>
       )}
 
       <Modal
@@ -89,67 +121,75 @@ const ManageUsers = () => {
         onCancel={handleModalClose}
         footer={null}
         centered
-        className="rounded-lg bg-gray-900 text-white shadow-lg"
-        bodyStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', padding: '20px' }}
+        className="rounded-lg bg-white text-gray-800"
+        bodyStyle={{ borderRadius: '8px', padding: '20px' }}
       >
         <Form
-          initialValues={editingUser}
+          initialValues={{
+            name: editingUser ? editingUser.name : '',
+            email: editingUser ? editingUser.email : '',
+            role: editingUser ? editingUser.role : '',
+            is_active: editingUser ? editingUser.is_active : true,
+          }}
           onFinish={handleFormSubmit}
           layout="vertical"
-          className="text-gray-300"
+          className="text-gray-700 space-y-4"
         >
           <Form.Item
             name="name"
             label="Name"
             rules={[{ required: true, message: 'Please enter the name' }]}
-            className="text-gray-300"
           >
             <Input
               placeholder="Enter name"
-              className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+              className="bg-gray-100 text-gray-800 rounded-lg"
             />
           </Form.Item>
           <Form.Item
             name="email"
             label="Email"
             rules={[{ required: true, message: 'Please enter the email' }]}
-            className="text-gray-300"
           >
             <Input
               placeholder="Enter email"
-              className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+              className="bg-gray-100 text-gray-800 rounded-lg"
             />
           </Form.Item>
           <Form.Item
             name="role"
             label="Role"
             rules={[{ required: true, message: 'Please select a role' }]}
-            className="text-gray-300"
           >
             <Select
               placeholder="Select role"
-              className="bg-gray-700 border border-gray-600 text-white rounded-lg"
-              dropdownClassName="bg-gray-700 text-white"
+              className="bg-gray-100 text-gray-800 rounded-lg"
+              dropdownClassName="bg-gray-100 text-gray-800"
             >
               <Option value="admin">Admin</Option>
               <Option value="user">User</Option>
             </Select>
+          </Form.Item>
+          <Form.Item
+            name="is_active"
+            label="Is Active"
+            valuePropName="checked"
+          >
+            <Checkbox className="text-gray-800">Active User</Checkbox>
           </Form.Item>
           {!editingUser && (
             <Form.Item
               name="password"
               label="Password"
               rules={[{ required: true, message: 'Please enter a password' }]}
-              className="text-gray-300"
             >
               <Input.Password
                 placeholder="Enter password"
-                className="bg-gray-700 border border-gray-600 text-white rounded-lg"
+                className="bg-gray-100 text-gray-800 rounded-lg"
               />
             </Form.Item>
           )}
           <Form.Item className="flex justify-end">
-            <Button type="primary" htmlType="submit" className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg">
+            <Button type="primary" htmlType="submit" className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md px-6 py-2">
               {editingUser ? "Save Changes" : "Create User"}
             </Button>
           </Form.Item>

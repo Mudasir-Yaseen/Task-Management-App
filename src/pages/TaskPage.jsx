@@ -5,6 +5,7 @@ import { fetchTasks, createTask, updateTask, deleteTask } from '../services/task
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Dialog } from "@headlessui/react";
 import { PlusIcon, TrashIcon, PencilIcon, DotsVerticalIcon } from "@heroicons/react/outline";
+// import './TasksPage.css'; // Assuming this CSS file contains the required styles
 
 const TasksPage = () => {
   const dispatch = useDispatch();
@@ -31,7 +32,6 @@ const TasksPage = () => {
     due_date: "", 
   });
   const [editTask, setEditTask] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [showMenu, setShowMenu] = useState({}); // For dropdown menu visibility
 
@@ -60,6 +60,18 @@ const TasksPage = () => {
 
     setColumns(updatedColumns);
   }, [tasks]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-menu')) {
+        setShowMenu({});
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -165,24 +177,19 @@ const TasksPage = () => {
   };
 
   const handleDeleteTask = (columnId, itemId) => {
-    setConfirmDelete({ columnId, itemId });
-  };
-
-  const confirmDeleteTask = () => {
-    if (!confirmDelete) return;
-    dispatch(deleteTask({ projectId: id, taskId: confirmDelete.itemId }))
+    dispatch(deleteTask({ projectId: id, taskId: itemId }))
       .unwrap()
       .then(() => {
         setColumns((prevColumns) => {
-          const updatedItems = prevColumns[confirmDelete.columnId].items.filter(
-            (item) => item.id !== confirmDelete.itemId
+          const updatedItems = prevColumns[columnId].items.filter(
+            (item) => item.id !== itemId
           );
           return {
             ...prevColumns,
-            [confirmDelete.columnId]: { ...prevColumns[confirmDelete.columnId], items: updatedItems },
+            [columnId]: { ...prevColumns[columnId], items: updatedItems },
           };
         });
-        setConfirmDelete(null);
+        setShowMenu({}); // Close dropdown after delete
         dispatch(fetchTasks(id)); // Refetch tasks to get the updated list after deletion
       })
       .catch(console.error);
@@ -210,14 +217,22 @@ const TasksPage = () => {
   };
 
   const toggleMenu = (taskId) => {
-    setShowMenu((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+    setShowMenu((prev) => {
+      const newMenuState = { ...prev, [taskId]: !prev[taskId] };
+      Object.keys(newMenuState).forEach(key => {
+        if (key !== taskId) {
+          newMenuState[key] = false;
+        }
+      });
+      return newMenuState;
+    });
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <div className="flex-1 flex flex-col p-8">
+      <div className="flex-1 flex flex-col p-6">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800">Tasks Management</h1>
+          <h1 className="text-4xl mb-3 font-bold text-gray-800">Tasks Management</h1>
           <input
             type="text"
             placeholder="Search tasks..."
@@ -234,14 +249,14 @@ const TasksPage = () => {
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {Object.entries(columns).map(([columnId, column]) => (
-              <div key={columnId} className="bg-gray-100 rounded-lg p-4 shadow-md">
-                <h2 className="font-bold text-xl mb-4">{column.name}</h2>
+              <div key={columnId} className="bg-gray-100 rounded-lg p-1 shadow-md">
+                <h2 className="font-bold text-xl flex mb-4 items-center justify-center  text-center">{column.name}</h2>
                 <Droppable droppableId={columnId}>
                   {(provided) => (
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className="min-h-[200px] bg-white rounded-md p-4"
+                      className="min-h-[200px] bg-white rounded-md p-1"
                     >
                       {column.items
                         .filter((item) => item.content.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -252,7 +267,7 @@ const TasksPage = () => {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className="p-4 mb-4 bg-white rounded-md shadow relative"
+                                className="p-3 mb-4 bg-white rounded-md shadow relative"
                               >
                                 <div className="flex justify-between items-center">
                                   <div>
@@ -268,7 +283,7 @@ const TasksPage = () => {
                                   </button>
                                 </div>
                                 {showMenu[item.id] && (
-                                  <div className="absolute right-0 mt-2 bg-white border rounded shadow-md z-10">
+                                  <div className="absolute right-0 mt-2 bg-white border rounded shadow-md z-10 dropdown-menu">
                                     <button
                                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                                       onClick={() => handleEditTask(item)}

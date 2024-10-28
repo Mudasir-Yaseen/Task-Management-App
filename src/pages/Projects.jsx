@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProjects, createProject, updateProject, deleteProject } from '../services/projectSlice';
 import { fetchUsers } from '../services/userSlice';
 import useAuth from '../hooks/useAuth';
-import { CheckCircleIcon } from '@heroicons/react/outline';
+import { CheckCircleIcon, DotsVerticalIcon, UserAddIcon } from '@heroicons/react/outline';
+import { Menu, Transition } from '@headlessui/react';
 
 const Projects = () => {
   const dispatch = useDispatch();
   const { user } = useAuth();
 
   const { projects, loading, totalProjects } = useSelector((state) => state.projects);
-  const { users } = useSelector((state) => state.users);
+  const { users, loading: usersLoading } = useSelector((state) => state.users);
 
   const [newProject, setNewProject] = useState({ name: '', description: '', assignedTo: '', is_active: true });
   const [editProject, setEditProject] = useState(null);
   const [assignProject, setAssignProject] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [page, setPage] = useState(1);
-  const limit = 10; // Number of projects per page
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const limit = 10;
 
   useEffect(() => {
     dispatch(fetchProjects({ page, limit }));
@@ -26,7 +29,7 @@ const Projects = () => {
 
   useEffect(() => {
     if (showCreateForm && users.length === 0) {
-      dispatch(fetchUsers({ page: 1, limit: 10 }));
+      dispatch(fetchUsers({ page: 1, limit: 100 }));
     }
   }, [showCreateForm, dispatch, users.length]);
 
@@ -41,7 +44,7 @@ const Projects = () => {
       await dispatch(createProject(newProject)).unwrap();
       setNewProject({ name: '', description: '', assignedTo: '', is_active: true });
       setShowCreateForm(false);
-      dispatch(fetchProjects({ page, limit })); // Refresh the list
+      dispatch(fetchProjects({ page, limit }));
     } catch (error) {
       console.error('Failed to create project', error);
     }
@@ -62,210 +65,222 @@ const Projects = () => {
   const handleDeleteProject = async (projectId) => {
     try {
       await dispatch(deleteProject(projectId)).unwrap();
-      dispatch(fetchProjects({ page, limit })); // Refresh the list
+      dispatch(fetchProjects({ page, limit }));
     } catch (error) {
       console.error('Failed to delete project', error);
     }
   };
 
-  const handleReassignProject = async (e) => {
-    e.preventDefault();
+  const handleOpenModal = (project) => {
+    setAssignProject({ ...project, is_active: project.is_active || true }); // Ensure is_active is set
+    setIsModalOpen(true);
+  };
+
+  const handleAssignProject = async () => {
     if (assignProject) {
       try {
-        await dispatch(updateProject({ id: assignProject.id, projectData: { ...assignProject, assignedTo: assignProject.assignedTo }})).unwrap();
+        await dispatch(updateProject({
+          id: assignProject.id,
+          projectData: { 
+            ...assignProject, 
+            is_active: assignProject.is_active !== undefined ? assignProject.is_active : true, // Ensure is_active is a boolean
+          }
+        })).unwrap();
         setAssignProject(null);
+        setIsModalOpen(false); // Close the modal after assigning
       } catch (error) {
         console.error('Failed to re-assign project', error);
       }
     }
   };
 
-  const totalPages = Math.ceil(totalProjects / limit); // Calculate total pages
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(userSearchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(totalProjects / limit);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-      <h2 className="text-xl font-bold text-gray-700 mb-4">Projects</h2>
+    <div className="bg-gray-100 p-6 rounded-md shadow-md border border-gray-300">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Projects</h2>
+
+      {user.role === 'admin' && (
+        <div className="mb-6">
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="bg-green-600 text-white py-2 px-6 rounded-full hover:bg-green-700 transition duration-200 shadow"
+          >
+            {showCreateForm ? "Cancel" : "Create New Project"}
+          </button>
+
+          {showCreateForm && (
+            <form onSubmit={handleCreateProject} className="bg-white p-4 mt-4 rounded shadow">
+              <input
+                type="text"
+                name="name"
+                placeholder="Project Name"
+                value={newProject.name}
+                onChange={handleInputChange}
+                required
+                className="border border-gray-300 p-3 mb-3 w-full rounded"
+              />
+              <textarea
+                name="description"
+                placeholder="Project Description"
+                value={newProject.description}
+                onChange={handleInputChange}
+                required
+                className="border border-gray-300 p-3 mb-3 w-full rounded"
+              />
+              <input
+                type="text"
+                placeholder="Search Users..."
+                value={userSearchTerm}
+                onChange={(e) => setUserSearchTerm(e.target.value)}
+                className="border border-gray-300 p-3 mb-3 w-full rounded"
+              />
+              {usersLoading ? (
+                <p>Loading users...</p>
+              ) : (
+                <select
+                  name="assignedTo"
+                  value={newProject.assignedTo}
+                  onChange={handleInputChange}
+                  required
+                  className="border border-gray-300 p-3 mb-3 w-full rounded"
+                >
+                  <option value="">Assign to User</option>
+                  {filteredUsers.map(user => (
+                    <option key={user.id} value={user.name}>{user.name}</option>
+                  ))}
+                </select>
+              )}
+              <button
+                type="submit"
+                className="bg-teal-600 text-white py-2 px-6 rounded hover:bg-teal-700 transition duration-200 shadow"
+              >
+                Create Project
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       <div className="mb-6">
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mb-4 transition duration-200"
-        >
-          {showCreateForm ? "Cancel" : "Create New Project"}
-        </button>
-
-        {showCreateForm && (
-          <form onSubmit={handleCreateProject} className="mb-6">
-            <input
-              type="text"
-              name="name"
-              placeholder="Project Name"
-              value={newProject.name}
-              onChange={handleInputChange}
-              required
-              className="border p-2 mb-2 w-full rounded"
-            />
-            <textarea
-              name="description"
-              placeholder="Project Description"
-              value={newProject.description}
-              onChange={handleInputChange}
-              required
-              className="border p-2 mb-2 w-full rounded"
-            />
-            <select
-              name="assignedTo"
-              value={newProject.assignedTo}
-              onChange={handleInputChange}
-              required
-              className="border p-2 mb-2 w-full rounded"
-            >
-              <option value="">Assign to User</option>
-              {users.map(user => (
-                <option key={user.id} value={user.name}>{user.name}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition duration-200"
-            >
-              Create Project
-            </button>
-          </form>
-        )}
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Project List</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">Project List</h3>
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             {projects.map((project) => (
               <li
                 key={project.id}
-                className="p-4 border rounded-md shadow-sm bg-gray-50 flex justify-between items-center relative"
+                className="p-5 bg-white border border-gray-300 rounded-md shadow hover:bg-gray-50 transition duration-200"
               >
-                <div>
-                  <h4 className="font-bold">{project.name}</h4>
-                  <p>{project.description}</p>
-                  <p className="text-sm text-gray-600">Assigned to: {project.assignedTo}</p>
-                </div>
-                
-                <div className="flex space-x-4">
-                  <Link to={`/tasks/${project.id}`} className="text-teal-600 hover:text-teal-700">
-                    <CheckCircleIcon className="w-6 h-6" />
-                  </Link>
-                  <button
-                    onClick={() => setEditProject({ ...project })}
-                    className="text-yellow-600 hover:text-yellow-700"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProject(project.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    onClick={() => setAssignProject({ ...project })}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    Re-assign
-                  </button>
-                </div>
-
-                {editProject && editProject.id === project.id && (
-                  <div className="absolute top-0 left-0 right-0 mt-10 bg-white shadow-lg p-4 rounded-lg z-10 transition-all ease-in-out duration-300">
-                    <h3 className="text-lg font-semibold mb-2">Edit Project</h3>
-                    <input
-                      type="text"
-                      name="name"
-                      value={editProject.name}
-                      onChange={(e) => setEditProject({ ...editProject, name: e.target.value })}
-                      required
-                      className="border p-2 mb-2 w-full rounded"
-                    />
-                    <textarea
-                      name="description"
-                      value={editProject.description}
-                      onChange={(e) => setEditProject({ ...editProject, description: e.target.value })}
-                      required
-                      className="border p-2 mb-2 w-full rounded"
-                    />
-                    <button
-                      onClick={handleEditProject}
-                      className="bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700 transition duration-200"
-                    >
-                      Update Project
-                    </button>
-                    <button
-                      onClick={() => setEditProject(null)}
-                      className="text-gray-600 ml-2"
-                    >
-                      Cancel
-                    </button>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{project.name}</h4>
+                    <p className="text-gray-600">{project.description}</p>
+                    <p className="text-sm text-gray-500">Assigned to: {project.assignedTo}</p>
                   </div>
-                )}
 
-                {assignProject && assignProject.id === project.id && (
-                  <div className="absolute top-0 left-0 right-0 mt-10 bg-white shadow-lg p-4 rounded-lg z-10 transition-all ease-in-out duration-300">
-                    <h3 className="text-lg font-semibold mb-2">Re-assign Project</h3>
-                    <select
-                      name="assignedTo"
-                      value={assignProject.assignedTo}
-                      onChange={(e) => setAssignProject({ ...assignProject, assignedTo: e.target.value })}
-                      required
-                      className="border p-2 mb-2 w-full rounded"
-                    >
-                      <option value="">Assign to User</option>
-                      {users.map(user => (
-                        <option key={user.id} value={user.name}>{user.name}</option>
-                      ))}
-                    </select>
+                  <div className="flex space-x-2 items-center">
+                    <Link to={`/tasks/${project.id}`} className="text-blue-600 hover:text-blue-800">
+                      <CheckCircleIcon className="w-6 h-6" />
+                    </Link>
                     <button
-                      onClick={handleReassignProject}
-                      className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-200"
+                      onClick={() => handleOpenModal(project)} // Open modal for assignment
+                      className="text-blue-600 hover:text-blue-800"
                     >
-                      Re-assign Project
+                      <UserAddIcon className="w-6 h-6" />
                     </button>
-                    <button
-                      onClick={() => setAssignProject(null)}
-                      className="text-gray-600 ml-2"
-                    >
-                      Cancel
-                    </button>
+
+                    {user.role === 'admin' && (
+                      <Menu as="div" className="relative inline-block text-left">
+                        <div>
+                          <Menu.Button className="flex items-center text-gray-600 hover:text-gray-800">
+                            <DotsVerticalIcon className="w-5 h-5" />
+                          </Menu.Button>
+                        </div>
+
+                        <Transition
+                          as={Fragment}
+                          enter="transition ease-out duration-100"
+                          enterFrom="transform opacity-0 scale-95"
+                          enterTo="transform opacity-100 scale-100"
+                          leave="transition ease-in duration-75"
+                          leaveFrom="transform opacity-100 scale-100"
+                          leaveTo="transform opacity-0 scale-95"
+                        >
+                          <Menu.Items className="origin-top-right absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                            <div className="py-1">
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => setEditProject({ ...project })}
+                                    className={`${
+                                      active ? 'bg-gray-200' : ''
+                                    } flex items-center px-4 py-2 text-sm text-gray-700 w-full`}
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+                              </Menu.Item>
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => handleDeleteProject(project.id)}
+                                    className={`${
+                                      active ? 'bg-gray-200' : ''
+                                    } flex items-center px-4 py-2 text-sm text-gray-700 w-full`}
+                                  >
+                                    Delete
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            </div>
+                          </Menu.Items>
+                        </Transition>
+                      </Menu>
+                    )}
                   </div>
-                )}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* Advanced Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
-          className={`py-2 px-4 rounded ${page === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 transition duration-200'}`}
-        >
-          Previous
-        </button>
-        
-        <span className="text-gray-600">
-          Page {page} of {totalPages}
-        </span>
-
-        <button
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={page === totalPages}
-          className={`py-2 px-4 rounded ${page === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 transition duration-200'}`}
-        >
-          Next
-        </button>
-      </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+            <h3 className="text-lg font-semibold mb-4">Assign Project</h3>
+            <select
+              name="assignedTo"
+              value={assignProject?.assignedTo}
+              onChange={(e) => setAssignProject({ ...assignProject, assignedTo: e.target.value })}
+              className="border border-gray-300 p-2 w-full rounded mb-4"
+            >
+              <option value="">Select User</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.name}>{user.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleAssignProject}
+              className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition duration-200"
+            >
+              Assign
+            </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-200 ml-2"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
